@@ -1,0 +1,100 @@
+---
+title: "APIs"
+author: "Eva Juengling Bean"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: load-libraries
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(janitor)
+library(here)
+library(ggplot2)
+library(httr2)
+library(jsonlite)
+
+
+```
+
+```{r}
+
+#| label: build-api-req
+#| echo: true
+
+req <- request("https://air-quality-api.open-meteo.com/v1/air-quality")|>
+  req_url_query(
+    latitude=34.42,
+    longitude = -119.70,
+    hourly = "pm2_5",
+    past_days=3
+  )
+
+resp <- req|>
+  req_perform()
+
+attributes(resp)
+
+aq_raw <- resp|>
+  resp_body_json(simplifyVector = TRUE)
+
+names(aq_raw)
+
+# turn this into a data frame
+
+aq_df <- data.frame(time=as.POSIXct(unlist(aq_raw$hourly$time), format="%Y-%m-%dT%H:%M"),
+                    pm2_5 = unlist(aq_raw$hourly$pm2_5))
+
+head(aq_df)
+
+# plot
+
+ggplot(aq_df, aes(x = time, y = pm2_5)) +
+  geom_line(colour = "steelblue") +
+  geom_hline(yintercept = 12, linetype = "dashed", colour = "orange") +
+  annotate("text", x = min(aq_df$time), y = 13.5,
+           label = "EPA annual standard (12 µg/m³)",
+           hjust = 0, size = 3, colour = "orange") +
+  labs(
+    title = "PM2.5 Air Quality — Santa Barbara",
+    x     = "Time",
+    y     = "PM2.5 (µg/m³)"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#| label: pm-10
+#| echo: true
+
+req10 <- request("https://air-quality-api.open-meteo.com/v1/air-quality")|>
+  req_url_query(
+    latitude=34.42,
+    longitude = -119.70,
+    hourly = "pm10",
+    past_days=3
+  )
+
+resp10 <- req10 |>
+  req_perform()
+
+attributes(resp10)
+
+aq10_raw <- resp10|>
+  resp_body_json(simplifyVector = TRUE)
+
+attributes(aq10_raw)
+
+aq10_df <- data.frame(time=as.POSIXct(unlist(aq10_raw$hourly$time), format="%Y-%m-%dT%H%m"),
+                      pm10=unlist(aq10_raw$hourly$pm10))
+
+pm10.mean <- mean(aq10_df$pm10)
+pm2_5.mean <- mean(aq_df$pm2_5)
+
+pm10.mean
+pm2_5.mean
+```

@@ -1,0 +1,63 @@
+---
+title: "Make Up Class 5/19"
+author: "Eva Juengling Bean"
+format: html
+editor: visual
+---
+
+```{r}
+
+library(tidyverse)
+library(janitor)
+library(here)
+library(ggplot2)
+
+```
+
+```{r}
+#| label: NPV
+#| echo: true
+
+compute_NPV(20, discount=0.01, time=20)
+
+# generate input:
+damages <- c(25,33,91,24)
+damages
+
+discount.rates <- seq(0.01,0.04, by=0.005)
+
+
+# compute npv for all combintations of damages and discount rates
+# generate data frame to store results - rows=damages, columns=discount rates
+
+npvs <- data.frame(matrix(nrow=length(damages), ncol=length(discount.rates)))
+
+npvs
+
+yr <- 10
+# nested loop to population npvs
+
+for(i in 1:length(damages)){
+  for(j in 1:length(discount.rates)){
+    npvs[i,j] = compute_NPV(value=damages[i], discount=discount.rates[j], time=yr)
+  }
+}
+
+npvs
+colnames(npvs) <- discount.rates
+npvs$damage <- damages
+
+npvs
+```
+
+
+
+```{r}
+#| label: clean-up-to-plot
+#| echo: true
+
+npvsg <- npvs |>
+  pivot_longer(!damage, names_to = "discount", values_to = "npv")
+
+
+```

@@ -1,0 +1,44 @@
+---
+title: "Week 8"
+author: "Eva Juengling Bean"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: libraries
+#| echo: false
+#| message: false
+#| warnings: false
+
+library(usethis)
+library(tidyverse)
+library(here)
+library(janitor)
+library(ggplot2)
+
+```
+
+```{r}
+
+#| label: conditional-structure
+#| echo: true
+
+classify.fish <- function(fish){
+  case_when((fish=="steelhead") ~"A", (fish=="tuna") ~"B", !(fish=="steelhead") & !(fish=="tuna") ~"C")
+}
+
+classify.fish("steelhead")
+
+possible.fish <- c("steelhead", "tuna", "salmon", "shark", "cod")
+
+catch.1 <- as.data.frame(base::sample(possible.fish, size=100, replace=T))
+
+catch.1$class <- classify.fish(catch.1)
+colnames(catch.1)<- c("species", "class")
+
+# case_when is useful for simple classifications with more than one option; use if else if you want to take two different pathways
+```
+
+
+
